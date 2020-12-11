@@ -125,10 +125,9 @@ AddEventHandler('esx_communityservice:sendToCommunityService', function(target, 
 		end
 	end)
 	
-	
-	MySQL.Async.fetchAll('UPDATE users SET loadout = "[]" WHERE identifier = @identifier', {
-		['@identifier'] = identifier
-	})
+	for k,v in ipairs(tPlayer.loadout) do
+		tPlayer.removeWeapon(v.name)
+	end
 
 	TriggerClientEvent('chat:addMessage', -1, { args = { _U('judge'), _U('comserv_msg', GetPlayerName(target), actions_count) }, color = { 147, 196, 109 } })
 	TriggerClientEvent('esx_policejob:unrestrain', target)
