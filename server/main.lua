@@ -2,7 +2,6 @@ ESX = nil
 
 TriggerEvent('esx:getSharedObject', function(obj) ESX = obj end)
 
-
 TriggerEvent('es:addGroupCommand', 'comserv', 'admin', function(source, args, user)
 	if args[1] and GetPlayerName(args[1]) ~= nil and tonumber(args[2]) then
 		TriggerEvent('esx_communityservice:sendToCommunityService', tonumber(args[1]), tonumber(args[2]))
@@ -14,27 +13,24 @@ end, function(source, args, user)
 end, {help = _U('give_player_community'), params = {{name = "id", help = _U('target_id')}, {name = "actions", help = _U('action_count_suggested')}}})
 _U('system_msn')
 
-
 TriggerEvent('es:addGroupCommand', 'endcomserv', 'admin', function(source, args, user)
 	if args[1] then
 		if GetPlayerName(args[1]) ~= nil then
-			TriggerEvent('esx_communityservice:endCommunityServiceCommand', tonumber(args[1]))
+			TriggerEvent('esx_communityservice:endConServiceServerCommand', tonumber(args[1]))
 		else
 			TriggerClientEvent('chat:addMessage', source, { args = { _U('system_msn'), _U('invalid_player_id')  } } )
 		end
 	else
-		TriggerEvent('esx_communityservice:endCommunityServiceCommand', source)
+		TriggerEvent('esx_communityservice:endConServiceServerCommand', source)
 	end
 end, function(source, args, user)
 	TriggerClientEvent('chat:addMessage', source, { args = { _U('system_msn'), _U('insufficient_permissions') } })
 end, {help = _U('unjail_people'), params = {{name = "id", help = _U('target_id')}}})
 
 
-
-
-
-RegisterServerEvent('esx_communityservice:endCommunityServiceCommand')
-AddEventHandler('esx_communityservice:endCommunityServiceCommand', function(source)
+RegisterServerEvent('esx_communityservice:endConServiceServerCommand')
+AddEventHandler('esx_communityservice:endConServiceServerCommand', function(source)
+	-- @TODO: Admin Rank check
 	if source ~= nil then
 		releaseFromCommunityService(source)
 	end
@@ -43,16 +39,14 @@ end)
 -- unjail after time served
 RegisterServerEvent('esx_communityservice:finishCommunityService')
 AddEventHandler('esx_communityservice:finishCommunityService', function()
+	-- @TODO: Admin Rank check
 	releaseFromCommunityService(source)
 end)
 
 
-
-
-
 RegisterServerEvent('esx_communityservice:completeService')
 AddEventHandler('esx_communityservice:completeService', function()
-
+	-- @TODO: Admin Rank check
 	local _source = source
 	local identifier = GetPlayerIdentifiers(_source)[1]
 
@@ -69,9 +63,6 @@ AddEventHandler('esx_communityservice:completeService', function()
 		end
 	end)
 end)
-
-
-
 
 RegisterServerEvent('esx_communityservice:extendService')
 AddEventHandler('esx_communityservice:extendService', function()
@@ -94,15 +85,29 @@ AddEventHandler('esx_communityservice:extendService', function()
 	end)
 end)
 
-
-
-
-
-
 RegisterServerEvent('esx_communityservice:sendToCommunityService')
 AddEventHandler('esx_communityservice:sendToCommunityService', function(target, actions_count)
 
 	local identifier = GetPlayerIdentifiers(target)[1]
+	local xPlayer = ESX.GetPlayerFromId(source)
+	local tPlayer = ESX.GetPlayerFromId(target)
+	
+	if not xPlayer or not tPlayer then
+		return false
+	end
+
+	if xPlayer.job.name == 'police' then
+		tPlayer.set('HandCuff', false)
+		xPlayer.set('HandCuffedPlayer', nil)
+		tPlayer.set('HandCuffedBy', nil)
+		xPlayer.set('EscortPlayer', nil)
+		tPlayer.set('EscortBy', nil)
+		TriggerClientEvent('esx_policejob:dragOff', target)
+		TriggerClientEvent('esx_policejob:dragCopOff', source)
+		TriggerClientEvent('esx_policejob:handuncuff', target, foot)
+	elseif xPlayer.getGroup() == 'user' then
+		return
+	end
 
 	MySQL.Async.fetchAll('SELECT * FROM communityservice WHERE identifier = @identifier', {
 		['@identifier'] = identifier
@@ -119,28 +124,16 @@ AddEventHandler('esx_communityservice:sendToCommunityService', function(target, 
 			})
 		end
 	end)
+	
+	
+	MySQL.Async.fetchAll('UPDATE users SET loadout = "[]" WHERE identifier = @identifier', {
+		['@identifier'] = identifier
+	})
 
 	TriggerClientEvent('chat:addMessage', -1, { args = { _U('judge'), _U('comserv_msg', GetPlayerName(target), actions_count) }, color = { 147, 196, 109 } })
 	TriggerClientEvent('esx_policejob:unrestrain', target)
 	TriggerClientEvent('esx_communityservice:inCommunityService', target, actions_count)
 end)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 RegisterServerEvent('esx_communityservice:checkIfSentenced')
 AddEventHandler('esx_communityservice:checkIfSentenced', function()
@@ -156,12 +149,6 @@ AddEventHandler('esx_communityservice:checkIfSentenced', function()
 		end
 	end)
 end)
-
-
-
-
-
-
 
 function releaseFromCommunityService(target)
 

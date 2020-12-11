@@ -32,26 +32,20 @@ Citizen.CreateThread(function()
 	end
 end)
 
-
 Citizen.CreateThread(function()
 	Citizen.Wait(2000) --Wait for mysql-async
 	TriggerServerEvent('esx_communityservice:checkIfSentenced')
 end)
 
-
 function FillActionTable(last_action)
 
 	while #availableActions < 5 do
-
 		local service_does_not_exist = true
-
 		local random_selection = Config.ServiceLocations[math.random(1,#Config.ServiceLocations)]
 
 		for i = 1, #availableActions do
 			if random_selection.coords.x == availableActions[i].coords.x and random_selection.coords.y == availableActions[i].coords.y and random_selection.coords.z == availableActions[i].coords.z then
-
 				service_does_not_exist = false
-
 			end
 		end
 
@@ -62,11 +56,8 @@ function FillActionTable(last_action)
 		if service_does_not_exist then
 			table.insert(availableActions, random_selection)
 		end
-
 	end
-
 end
-
 
 RegisterNetEvent('esx_communityservice:inCommunityService')
 AddEventHandler('esx_communityservice:inCommunityService', function(actions_remaining)
@@ -75,13 +66,10 @@ AddEventHandler('esx_communityservice:inCommunityService', function(actions_rema
 	if isSentenced then
 		return
 	end
-
+	
 	actionsRemaining = actions_remaining
-
 	FillActionTable()
 	print(":: Available Actions: " .. #availableActions)
-
-
 
 	ApplyPrisonerSkin()
 	ESX.Game.Teleport(playerPed, Config.ServiceLocation)
@@ -115,16 +103,12 @@ AddEventHandler('esx_communityservice:inCommunityService', function(actions_rema
 		end)
 end)
 
-
-
 RegisterNetEvent('esx_communityservice:finishCommunityService')
 AddEventHandler('esx_communityservice:finishCommunityService', function(source)
 	communityServiceFinished = true
 	isSentenced = false
 	actionsRemaining = 0
 end)
-
-
 
 Citizen.CreateThread(function()
 	while true do
@@ -203,7 +187,6 @@ Citizen.CreateThread(function()
 	end
 end)
 
-
 function RemoveAction(action)
 
 	local action_pos = -1
@@ -222,18 +205,11 @@ function RemoveAction(action)
 
 end
 
-
-
-
-
-
-
 function DisplayHelpText(str)
 	SetTextComponentFormat("STRING")
 	AddTextComponentString(str)
 	DisplayHelpTextFromStringLabel(0, 0, 1, -1)
 end
-
 
 function DrawAvailableActions()
 
@@ -246,11 +222,6 @@ function DrawAvailableActions()
 	end
 
 end
-
-
-
-
-
 
 function DisableViolentActions()
 
@@ -279,15 +250,10 @@ function DisableViolentActions()
 
 end
 
-
 function ApplyPrisonerSkin()
-
 	local playerPed = PlayerPedId()
-
 	if DoesEntityExist(playerPed) then
-
 		Citizen.CreateThread(function()
-
 			TriggerEvent('skinchanger:getSkin', function(skin)
 				if skin.sex == 0 then
 					TriggerEvent('skinchanger:loadClothes', skin, Config.Uniforms['prison_wear'].male)
@@ -306,7 +272,6 @@ function ApplyPrisonerSkin()
 	end
 end
 
-
 function draw2dText(text, pos)
 	SetTextFont(4)
 	SetTextProportional(1)
@@ -316,7 +281,6 @@ function draw2dText(text, pos)
 	SetTextEdge(1, 0, 0, 0, 255)
 	SetTextDropShadow()
 	SetTextOutline()
-
 	BeginTextCommandDisplayText('STRING')
 	AddTextComponentSubstringPlayerName(text)
 	EndTextCommandDisplayText(table.unpack(pos))
