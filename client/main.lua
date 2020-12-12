@@ -33,7 +33,7 @@ Citizen.CreateThread(function()
 end)
 
 Citizen.CreateThread(function()
-	Citizen.Wait(2000) --Wait for mysql-async
+	Citizen.Wait(5000) --Wait for mysql-async
 	TriggerServerEvent('esx_communityservice:checkIfSentenced')
 end)
 

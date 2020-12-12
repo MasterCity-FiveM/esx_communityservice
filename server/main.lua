@@ -2,39 +2,18 @@ ESX = nil
 
 TriggerEvent('esx:getSharedObject', function(obj) ESX = obj end)
 
-TriggerEvent('es:addGroupCommand', 'comserv', 'admin', function(source, args, user)
-	if args[1] and GetPlayerName(args[1]) ~= nil and tonumber(args[2]) then
-		TriggerEvent('esx_communityservice:sendToCommunityService', tonumber(args[1]), tonumber(args[2]))
-	else
-		TriggerClientEvent('chat:addMessage', source, { args = { _U('system_msn'), _U('invalid_player_id_or_actions') } } )
-	end
-end, function(source, args, user)
-	TriggerClientEvent('chat:addMessage', source, { args = { _U('system_msn'), _U('insufficient_permissions') } })
-end, {help = _U('give_player_community'), params = {{name = "id", help = _U('target_id')}, {name = "actions", help = _U('action_count_suggested')}}})
-_U('system_msn')
+ESX.RegisterCommand('comserv', 'admin', function(xPlayer, args, showError)
+	TriggerEvent('esx_communityservice:sendToCommunityService', tonumber(args.playerId.source), tonumber(args.comcount))
+end, true, {help = "", validate = true, arguments = {
+	{name = 'playerId', help = 'PlayerID!', type = 'player'},
+	{comcount = 'jailTime', help = 'Tedad!', type = 'number'}
+}})
 
-TriggerEvent('es:addGroupCommand', 'endcomserv', 'admin', function(source, args, user)
-	if args[1] then
-		if GetPlayerName(args[1]) ~= nil then
-			TriggerEvent('esx_communityservice:endConServiceServerCommand', tonumber(args[1]))
-		else
-			TriggerClientEvent('chat:addMessage', source, { args = { _U('system_msn'), _U('invalid_player_id')  } } )
-		end
-	else
-		TriggerEvent('esx_communityservice:endConServiceServerCommand', source)
-	end
-end, function(source, args, user)
-	TriggerClientEvent('chat:addMessage', source, { args = { _U('system_msn'), _U('insufficient_permissions') } })
-end, {help = _U('unjail_people'), params = {{name = "id", help = _U('target_id')}}})
-
-
-RegisterServerEvent('esx_communityservice:endConServiceServerCommand')
-AddEventHandler('esx_communityservice:endConServiceServerCommand', function(source)
-	-- @TODO: Admin Rank check
-	if source ~= nil then
-		releaseFromCommunityService(source)
-	end
-end)
+ESX.RegisterCommand('endcomserv', 'admin', function(xPlayer, args, showError)
+	releaseFromCommunityService(args.playerId.source)
+end, true, {help = "", validate = true, arguments = {
+	{name = 'playerId', help = 'PlayerID!', type = 'player'}
+}})
 
 -- unjail after time served
 RegisterServerEvent('esx_communityservice:finishCommunityService')
@@ -42,7 +21,6 @@ AddEventHandler('esx_communityservice:finishCommunityService', function()
 	-- @TODO: Admin Rank check
 	releaseFromCommunityService(source)
 end)
-
 
 RegisterServerEvent('esx_communityservice:completeService')
 AddEventHandler('esx_communityservice:completeService', function()
@@ -93,18 +71,37 @@ AddEventHandler('esx_communityservice:sendToCommunityService', function(target, 
 	local tPlayer = ESX.GetPlayerFromId(target)
 	
 	if not xPlayer or not tPlayer then
-		return false
+		return
 	end
 
 	if xPlayer.job.name == 'police' then
-		tPlayer.set('HandCuff', false)
-		xPlayer.set('HandCuffedPlayer', nil)
-		tPlayer.set('HandCuffedBy', nil)
-		xPlayer.set('EscortPlayer', nil)
-		tPlayer.set('EscortBy', nil)
-		TriggerClientEvent('esx_policejob:dragOff', target)
-		TriggerClientEvent('esx_policejob:dragCopOff', source)
-		TriggerClientEvent('esx_policejob:handuncuff', target, foot)
+		if tPlayer.get('EscortBy') then
+			yPlayer = ESX.GetPlayerFromId(tPlayer.get('EscortBy'))
+			if yPlayer and yPlayer.get('EscortPlayer') and yPlayer.get('EscortPlayer') == target then
+				yPlayer.set('EscortPlayer', nil)
+				TriggerClientEvent('esx_policejob:dragCopOn', yPlayer.source, jailPlayer)
+			end
+			
+			TriggerClientEvent('esx_policejob:dragOn', jailPlayer, yPlayer.source)
+			tPlayer.set('EscortBy', nil)
+		end
+		
+		if tPlayer.get('HandCuffedBy') then
+			yPlayer = ESX.GetPlayerFromId(tPlayer.get('HandCuffedBy'))
+			if yPlayer and yPlayer.get('HandCuffedPlayer') and yPlayer.get('HandCuffedPlayer') == target then
+				if GetItemCount(yPlayer.source, 'handcuffs') == 0 then
+					yPlayer.addInventoryItem('handcuffs', 1)
+				end
+				
+				yPlayer.set('HandCuffedPlayer', nil)
+			end
+		end
+		
+		if tPlayer.get('HandCuff') then
+			tPlayer.set('HandCuff', false)
+			TriggerClientEvent('esx_policejob:handuncuffFast', target, true)
+			tPlayer.set('HandCuffedBy', nil)
+		end
 	elseif xPlayer.getGroup() == 'user' then
 		return
 	end
