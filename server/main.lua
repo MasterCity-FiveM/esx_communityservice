@@ -6,7 +6,7 @@ ESX.RegisterCommand('comserv', 'admin', function(xPlayer, args, showError)
 	TriggerEvent('esx_communityservice:sendToCommunityService', tonumber(args.playerId.source), tonumber(args.comcount))
 end, true, {help = "", validate = true, arguments = {
 	{name = 'playerId', help = 'PlayerID!', type = 'player'},
-	{comcount = 'jailTime', help = 'Tedad!', type = 'number'}
+	{name = 'comcount', help = 'Tedad!', type = 'number'}
 }})
 
 ESX.RegisterCommand('endcomserv', 'admin', function(xPlayer, args, showError)
