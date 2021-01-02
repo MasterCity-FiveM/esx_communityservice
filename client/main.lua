@@ -1,15 +1,3 @@
-local Keys = {
-  ["ESC"] = 322, ["F1"] = 288, ["F2"] = 289, ["F3"] = 170, ["F5"] = 166, ["F6"] = 167, ["F7"] = 168, ["F8"] = 169, ["F9"] = 56, ["F10"] = 57,
-  ["~"] = 243, ["1"] = 157, ["2"] = 158, ["3"] = 160, ["4"] = 164, ["5"] = 165, ["6"] = 159, ["7"] = 161, ["8"] = 162, ["9"] = 163, ["-"] = 84, ["="] = 83, ["BACKSPACE"] = 177,
-  ["TAB"] = 37, ["Q"] = 44, ["W"] = 32, ["E"] = 38, ["R"] = 45, ["T"] = 245, ["Y"] = 246, ["U"] = 303, ["P"] = 199, ["["] = 39, ["]"] = 40, ["ENTER"] = 18,
-  ["CAPS"] = 137, ["A"] = 34, ["S"] = 8, ["D"] = 9, ["F"] = 23, ["G"] = 47, ["H"] = 74, ["K"] = 311, ["L"] = 182,
-  ["LEFTSHIFT"] = 21, ["Z"] = 20, ["X"] = 73, ["C"] = 26, ["V"] = 0, ["B"] = 29, ["N"] = 249, ["M"] = 244, [","] = 82, ["."] = 81,
-  ["LEFTCTRL"] = 36, ["LEFTALT"] = 19, ["SPACE"] = 22, ["RIGHTCTRL"] = 70,
-  ["HOME"] = 213, ["PAGEUP"] = 10, ["PAGEDOWN"] = 11, ["DELETE"] = 178,
-  ["LEFT"] = 174, ["RIGHT"] = 175, ["TOP"] = 27, ["DOWN"] = 173,
-  ["NENTER"] = 201, ["N4"] = 108, ["N5"] = 60, ["N6"] = 107, ["N+"] = 96, ["N-"] = 97, ["N7"] = 117, ["N8"] = 61, ["N9"] = 118
-}
-
 ESX = nil
 INPUT_CONTEXT = 51
 
@@ -110,9 +98,72 @@ AddEventHandler('esx_communityservice:finishCommunityService', function(source)
 	actionsRemaining = 0
 end)
 
+RegisterNetEvent('master_keymap:e')
+AddEventHandler('master_keymap:e', function() 
+	if actionsRemaining > 0 and isSentenced then
+		draw2dText( _U('remaining_msg', ESX.Math.Round(actionsRemaining)), { 0.175, 0.955 } )
+		DrawAvailableActions()
+		DisableViolentActions()
+
+		local pCoords    = GetEntityCoords(PlayerPedId())
+
+		for i = 1, #availableActions do
+			local distance = GetDistanceBetweenCoords(pCoords, availableActions[i].coords, true)
+
+			if distance < 1.5 then
+				tmp_action = availableActions[i]
+				RemoveAction(tmp_action)
+				FillActionTable(tmp_action)
+				disable_actions = true
+
+				TriggerServerEvent('esx_communityservice:completeService')
+				actionsRemaining = actionsRemaining - 1
+
+				if (tmp_action.type == "cleaning") then
+					local cSCoords = GetOffsetFromEntityInWorldCoords(GetPlayerPed(PlayerId()), 0.0, 0.0, -5.0)
+					local vassouspawn = CreateObject(GetHashKey(vassoumodel), cSCoords.x, cSCoords.y, cSCoords.z, 1, 1, 1)
+					local netid = ObjToNet(vassouspawn)
+
+					ESX.Streaming.RequestAnimDict("amb@world_human_janitor@male@idle_a", function()
+							TaskPlayAnim(PlayerPedId(), "amb@world_human_janitor@male@idle_a", "idle_a", 8.0, -8.0, -1, 0, 0, false, false, false)
+							AttachEntityToEntity(vassouspawn,GetPlayerPed(PlayerId()),GetPedBoneIndex(GetPlayerPed(PlayerId()), 28422),-0.005,0.0,0.0,360.0,360.0,0.0,1,1,0,1,0,1)
+							vassour_net = netid
+						end)
+
+						ESX.SetTimeout(10000, function()
+							disable_actions = false
+							DetachEntity(NetToObj(vassour_net), 1, 1)
+							DeleteEntity(NetToObj(vassour_net))
+							vassour_net = nil
+							ClearPedTasks(PlayerPedId())
+						end)
+
+				end
+
+				if (tmp_action.type == "gardening") then
+					local cSCoords = GetOffsetFromEntityInWorldCoords(GetPlayerPed(PlayerId()), 0.0, 0.0, -5.0)
+					local spatulaspawn = CreateObject(GetHashKey(spatulamodel), cSCoords.x, cSCoords.y, cSCoords.z, 1, 1, 1)
+					local netid = ObjToNet(spatulaspawn)
+
+					TaskStartScenarioInPlace(PlayerPedId(), "world_human_gardener_plant", 0, false)
+					AttachEntityToEntity(spatulaspawn,GetPlayerPed(PlayerId()),GetPedBoneIndex(GetPlayerPed(PlayerId()), 28422),-0.005,0.0,0.0,190.0,190.0,-50.0,1,1,0,1,0,1)
+					spatula_net = netid
+
+					ESX.SetTimeout(14000, function()
+						disable_actions = false
+						DetachEntity(NetToObj(spatula_net), 1, 1)
+						DeleteEntity(NetToObj(spatula_net))
+						spatula_net = nil
+						ClearPedTasks(PlayerPedId())
+					end)
+				end
+			end
+		end
+	end
+end)
+
 Citizen.CreateThread(function()
 	while true do
-		:: start_over ::
 		Citizen.Wait(1)
 
 		if actionsRemaining > 0 and isSentenced then
@@ -127,62 +178,10 @@ Citizen.CreateThread(function()
 
 				if distance < 1.5 then
 					DisplayHelpText(_U('press_to_start'))
-
-
-					if(IsControlJustReleased(1, 38))then
-						tmp_action = availableActions[i]
-						RemoveAction(tmp_action)
-						FillActionTable(tmp_action)
-						disable_actions = true
-
-						TriggerServerEvent('esx_communityservice:completeService')
-						actionsRemaining = actionsRemaining - 1
-
-						if (tmp_action.type == "cleaning") then
-							local cSCoords = GetOffsetFromEntityInWorldCoords(GetPlayerPed(PlayerId()), 0.0, 0.0, -5.0)
-							local vassouspawn = CreateObject(GetHashKey(vassoumodel), cSCoords.x, cSCoords.y, cSCoords.z, 1, 1, 1)
-							local netid = ObjToNet(vassouspawn)
-
-							ESX.Streaming.RequestAnimDict("amb@world_human_janitor@male@idle_a", function()
-									TaskPlayAnim(PlayerPedId(), "amb@world_human_janitor@male@idle_a", "idle_a", 8.0, -8.0, -1, 0, 0, false, false, false)
-									AttachEntityToEntity(vassouspawn,GetPlayerPed(PlayerId()),GetPedBoneIndex(GetPlayerPed(PlayerId()), 28422),-0.005,0.0,0.0,360.0,360.0,0.0,1,1,0,1,0,1)
-									vassour_net = netid
-								end)
-
-								ESX.SetTimeout(10000, function()
-									disable_actions = false
-									DetachEntity(NetToObj(vassour_net), 1, 1)
-									DeleteEntity(NetToObj(vassour_net))
-									vassour_net = nil
-									ClearPedTasks(PlayerPedId())
-								end)
-
-						end
-
-						if (tmp_action.type == "gardening") then
-							local cSCoords = GetOffsetFromEntityInWorldCoords(GetPlayerPed(PlayerId()), 0.0, 0.0, -5.0)
-							local spatulaspawn = CreateObject(GetHashKey(spatulamodel), cSCoords.x, cSCoords.y, cSCoords.z, 1, 1, 1)
-							local netid = ObjToNet(spatulaspawn)
-
-							TaskStartScenarioInPlace(PlayerPedId(), "world_human_gardener_plant", 0, false)
-							AttachEntityToEntity(spatulaspawn,GetPlayerPed(PlayerId()),GetPedBoneIndex(GetPlayerPed(PlayerId()), 28422),-0.005,0.0,0.0,190.0,190.0,-50.0,1,1,0,1,0,1)
-							spatula_net = netid
-
-							ESX.SetTimeout(14000, function()
-								disable_actions = false
-								DetachEntity(NetToObj(spatula_net), 1, 1)
-								DeleteEntity(NetToObj(spatula_net))
-								spatula_net = nil
-								ClearPedTasks(PlayerPedId())
-							end)
-						end
-
-						goto start_over
-					end
 				end
 			end
 		else
-			Citizen.Wait(1000)
+			Citizen.Wait(3000)
 		end
 	end
 end)
