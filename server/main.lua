@@ -2,18 +2,18 @@ ESX = nil
 
 TriggerEvent('esx:getSharedObject', function(obj) ESX = obj end)
 
-ESX.RegisterCommand('comserv', 'admin', function(xPlayer, args, showError)
+ESX.RunCustomFunction("AddCommand", {"comserv"}, 1, function(xPlayer, args)
 	TriggerEvent('esx_communityservice:sendToCommunityService', tonumber(args.playerId.source), tonumber(args.comcount))
-end, true, {help = "", validate = true, arguments = {
-	{name = 'playerId', help = 'PlayerID!', type = 'player'},
-	{name = 'comcount', help = 'Tedad!', type = 'number'}
-}})
+end, {
+	{name = 'playerId', type = 'player'},
+	{name = 'comcount', type = 'number'}
+}, '.comserv PlayerID Count', '.')
 
-ESX.RegisterCommand('endcomserv', 'admin', function(xPlayer, args, showError)
+ESX.RunCustomFunction("AddCommand", {"endcomserv"}, 1, function(xPlayer, args)
 	releaseFromCommunityService(args.playerId.source)
-end, true, {help = "", validate = true, arguments = {
-	{name = 'playerId', help = 'PlayerID!', type = 'player'}
-}})
+end, {
+	{name = 'playerId', type = 'player'},
+}, '.endcomserv PlayerID', '.')
 
 -- unjail after time served
 RegisterServerEvent('esx_communityservice:finishCommunityService')
