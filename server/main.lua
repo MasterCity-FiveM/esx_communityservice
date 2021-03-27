@@ -102,7 +102,7 @@ AddEventHandler('esx_communityservice:sendToCommunityService', function(target, 
 			TriggerClientEvent('esx_policejob:handuncuffFast', target, true)
 			tPlayer.set('HandCuffedBy', nil)
 		end
-	elseif xPlayer.getGroup() == 'user' then
+	elseif xPlayer.getRank() < 1 then
 		return
 	end
 
