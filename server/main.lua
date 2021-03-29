@@ -4,6 +4,7 @@ TriggerEvent('esx:getSharedObject', function(obj) ESX = obj end)
 
 ESX.RunCustomFunction("AddCommand", {"comserv"}, 1, function(xPlayer, args)
 	TriggerEvent('esx_communityservice:sendToCommunityService', tonumber(args.playerId.source), tonumber(args.comcount))
+	ESX.RunCustomFunction("discord", xPlayer.source, 'gmactivity', 'Used .comserv', "Target: **" .. GetPlayerName(args.playerId) .. "**\n Count: **" .. args.comcount .. "**")
 end, {
 	{name = 'playerId', type = 'player'},
 	{name = 'comcount', type = 'number'}
@@ -11,6 +12,7 @@ end, {
 
 ESX.RunCustomFunction("AddCommand", {"endcomserv"}, 1, function(xPlayer, args)
 	releaseFromCommunityService(args.playerId.source)
+	ESX.RunCustomFunction("discord", xPlayer.source, 'gmactivity', 'Used .endcomserv', "Target: **" .. GetPlayerName(args.playerId) .. "**")
 end, {
 	{name = 'playerId', type = 'player'},
 }, '.endcomserv PlayerID', '.')
@@ -18,12 +20,15 @@ end, {
 -- unjail after time served
 RegisterServerEvent('esx_communityservice:finishCommunityService')
 AddEventHandler('esx_communityservice:finishCommunityService', function()
+	ESX.RunCustomFunction("anti_ddos", source, 'esx_communityservice:finishCommunityService', {})
+	ESX.RunCustomFunction("discord", source, 'comserv', 'Finished Comserv', "")
 	-- @TODO: Admin Rank check
 	releaseFromCommunityService(source)
 end)
 
 RegisterServerEvent('esx_communityservice:completeService')
 AddEventHandler('esx_communityservice:completeService', function()
+	ESX.RunCustomFunction("anti_ddos", source, 'esx_communityservice:completeService', {})
 	-- @TODO: Admin Rank check
 	local _source = source
 	local identifier = GetPlayerIdentifiers(_source)[1]
@@ -44,6 +49,7 @@ end)
 
 RegisterServerEvent('esx_communityservice:extendService')
 AddEventHandler('esx_communityservice:extendService', function()
+	ESX.RunCustomFunction("anti_ddos", source, 'esx_communityservice:extendService', {})
 
 	local _source = source
 	local identifier = GetPlayerIdentifiers(_source)[1]
@@ -65,6 +71,7 @@ end)
 
 RegisterServerEvent('esx_communityservice:sendToCommunityService')
 AddEventHandler('esx_communityservice:sendToCommunityService', function(target, actions_count)
+	ESX.RunCustomFunction("anti_ddos", source, 'esx_communityservice:sendToCommunityService', {target = target, actions_count = actions_count})
 
 	local identifier = GetPlayerIdentifiers(target)[1]
 	local xPlayer = ESX.GetPlayerFromId(source)
@@ -129,10 +136,12 @@ AddEventHandler('esx_communityservice:sendToCommunityService', function(target, 
 	TriggerClientEvent('chat:addMessage', -1, { args = { _U('judge'), _U('comserv_msg', GetPlayerName(target), actions_count) }, color = { 147, 196, 109 } })
 	TriggerClientEvent('esx_policejob:unrestrain', target)
 	TriggerClientEvent('esx_communityservice:inCommunityService', target, actions_count)
+	ESX.RunCustomFunction("discord", source, 'comserv', 'Sentenced Someone To Community Service', "Target: **" .. GetPlayerName(tPlayer.source) .. "**\n Count: **" .. actions_count .. "**")
 end)
 
 RegisterServerEvent('esx_communityservice:checkIfSentenced')
 AddEventHandler('esx_communityservice:checkIfSentenced', function()
+	ESX.RunCustomFunction("anti_ddos", source, 'esx_communityservice:checkIfSentenced', {})
 	local _source = source -- cannot parse source to client trigger for some weird reason
 	local identifier = GetPlayerIdentifiers(_source)[1] -- get steam identifier
 
