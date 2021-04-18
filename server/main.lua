@@ -4,7 +4,7 @@ TriggerEvent('esx:getSharedObject', function(obj) ESX = obj end)
 
 ESX.RunCustomFunction("AddCommand", "comserv", 1, function(xPlayer, args)
 	TriggerEvent('esx_communityservice:sendToCommunityService', args.playerId.source, args.comcount, xPlayer.source)
-	ESX.RunCustomFunction("discord", xPlayer.source, 'gmactivity', 'Used .comserv', "Target: **" .. GetPlayerName(args.playerId.source) .. "**\n Count: **" .. args.comcount .. "**")
+	ESX.RunCustomFunction("discord", xPlayer.source, 'gmactivity', 'Used .comserv', "Target: **" .. GetPlayerName(args.playerId.source) .. "**\n Count: **" .. args.comcount .. "**", "2106194")
 end, {
 	{name = 'playerId', type = 'player'},
 	{name = 'comcount', type = 'number'}
@@ -12,7 +12,7 @@ end, {
 
 ESX.RunCustomFunction("AddCommand", "endcomserv", 1, function(xPlayer, args)
 	releaseFromCommunityService(args.playerId.source)
-	ESX.RunCustomFunction("discord", xPlayer.source, 'gmactivity', 'Used .endcomserv', "Target: **" .. GetPlayerName(args.playerId.source) .. "**")
+	ESX.RunCustomFunction("discord", xPlayer.source, 'gmactivity', 'Used .endcomserv', "Target: **" .. GetPlayerName(args.playerId.source) .. "**", "2384697")
 end, {
 	{name = 'playerId', type = 'player'},
 }, '.endcomserv PlayerID', '.')
