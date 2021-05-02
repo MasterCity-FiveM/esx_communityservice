@@ -10,7 +10,7 @@ end, {
 	{name = 'comcount', type = 'number'}
 }, '.comserv PlayerID Count', '.')
 
-ESX.RunCustomFunction("AddCommand", "endcomserv", 1, function(xPlayer, args)
+ESX.RunCustomFunction("AddCommand", "endcomserv", 2, function(xPlayer, args)
 	releaseFromCommunityService(args.playerId.source)
 	ESX.RunCustomFunction("discord", xPlayer.source, 'comserv', 'GM .endcomserv', "Target: **" .. GetPlayerName(args.playerId.source) .. "**", "2384697")
 end, {
